@@ -1,72 +1,117 @@
-import streamlit as st
-from datetime import datetime, timedelta
+import telebot
+from telebot import types
 
-# إعدادات صفحة الموقع
-st.set_page_config(page_title="Fadhl Trading Bot - اشتراكات التداول", page_icon="📈", layout="centered")
+# 1. ضع هنا توكن البوت الخاص بك (تحصل عليه من @BotFather)
+TOKEN = 'YOUR_BOT_TOKEN_HERE'
 
-# تصميم واجهة المستخدم
-st.title("🚀 منصة اشتراكات بوت التداول الآلي")
-st.write("أهلاً بك! احصل على إشارات وتوصيات التداول الحية المدعومة بالذكاء الاصطناعي وخوارزميات السكالبينج.")
+# 2. ضع هنا رقم الآي دي (Admin Chat ID) الخاص بجوالك لكي تصلك الطلبات وحدك
+ADMIN_CHAT_ID = 123456789  # استبدل هذا الرقم برقم الآي دي الخاص بك
 
-st.markdown("---")
+bot = telebot.TeleBot(TOKEN)
 
-# قسم خطط الأسعار والاشتراكات
-st.header("💎 خطط الاشتراكات المتاحة")
+# تخزين مؤقت لبيانات المستخدمين أثناء التسجيل
+user_data = {}
 
-col1, col2 = st.columns(2)
+# النص الترحيبي وإخلاء المسؤولية المطلوب
+WELCOME_TEXT = (
+    " أهلاً بكم في سكريبتات التداول.\n\n"
+    "⚠️ **نحن غير مسؤولين على اي مخاطرة في التداول، نحن نعطيكم اشتراكات تداول بسعر 150 دولار.**\n\n"
+    "📋 **تفاصيل الاشتراك:**\n"
+    "• نوع الباقة: اشتراك شهري\n"
+    "• السعر: 150 دولار\n"
+    "• المدة: شهر واحد"
+)
 
-with col1:
-    st.subheader("🔹 اشتراك VIP الشهري")
-    st.markdown("""
-    * **السعر:** **150$ دولار**
-    * **المدة:** **شهر كامل (30 يوماً)**
-    * توصيات فورية لزوج BTC/USDT والأزواج الرئيسية.
-    * إدارة صارمة لمخاطر الصفقات (Stop Loss & Take Profit).
-    * تحديثات مباشرة على مدار الساعة.
-    """)
-
-with col2:
-    st.subheader("💳 وسائل الدفع المعتمدة")
-    st.markdown("""
-    لإتمام الاشتراك وتحويل مبلغ **150$**، يجوز الدفع عبر إحدى الطرق التالية:
-    * **بينانس (Binance Pay / USDT):** `fadhl.crypto@binance`
-    * **جوال باي (Jawwal Pay):** `059xxxxxxx`
-    * **باي بال (PayPal):** التحويل المباشر
-    """)
-
-st.markdown("---")
-
-# قسم طلب الاشتراك والدفع
-st.header("📝 نموذج طلب الاشتراك والتفعيل")
-with st.form("subscription_form"):
-    subscriber_name = st.text_input("اسمك الكريم / معرف التليجرام:")
-    payment_method = st.selectbox("اختر وسيلة الدفع المستخدمة:", ["Binance (USDT)", "جوال باي (Jawwal Pay)", "PayPal"])
-    transaction_id = st.text_input("رقم عملية التحويل (Transaction ID / الإيصال):")
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    chat_id = message.chat.id
+    user_data[chat_id] = {}
     
-    submit_button = st.form_submit_button(label="إرسال طلب الاشتراك")
+    markup = types.InlineKeyboardMarkup()
+    btn = types.InlineKeyboardButton("🚀 اشترك الآن (150$ - شهر)", callback_data="start_sub")
+    markup.add(btn)
     
-    if submit_button:
-        if subscriber_name and transaction_id:
-            # حساب تاريخ انتهاء الاشتراك بعد شهر (30 يوم)
-            start_date = datetime.now()
-            expiry_date = start_date + timedelta(days=30)
-            
-            st.success(f"تم استلام طلبك بنجاح يا {subscriber_name}!")
-            st.info(f"📅 سيتم تفعيل حسابك لمدة شهر كامل ليصبح صالحاً لغاية: **{expiry_date.strftime('%Y-%m-%d')}** فور التحقق من عملية التحويل عبر {payment_method}.")
-        else:
-            st.warning("⚠️ الرجاء إدخال اسمك ورقم عملية التحويل لتأكيد الطلب.")
+    bot.send_message(chat_id, WELCOME_TEXT, parse_mode="Markdown", reply_markup=markup)
 
-st.markdown("---")
+@bot.callback_query_handler(func=lambda call: call.data == "start_sub")
+def ask_username(call):
+    chat_id = call.message.chat.id
+    bot.answer_callback_query(call.id)
+    bot.send_message(chat_id, "الخطوة (1/4): يرجى إدخال **اسم المستخدم** الذي تريده:")
+    bot.register_next_step_handler(call.message, get_username)
 
-# قسم لوحة تحكم المشتركين (لإدخال كود التفعيل ورؤية الإشارات)
-st.header("📊 لوحة تحكم المشتركين (الإشارات الحية)")
-access_code = st.text_input("أدخل كود التفعيل الخاص بك لعرض الصفقات الحية:", type="password")
+def get_username(message):
+    chat_id = message.chat.id
+    user_data[chat_id]['username'] = message.text
+    bot.send_message(chat_id, "الخطوة (2/4): يرجى إدخال **كلمة المرور** الخاصة بحسابك:")
+    bot.register_next_step_handler(message, get_password)
 
-if access_code:
-    # كود تجريبي للتفعيل (يمكنك تغليفه أو ربطه بقاعدة بيانات لاحقاً)
-    if access_code == "FADHL2026-VIP":
-        st.success("🎉 أهلاً بك في القسم الخاص بالمشتركين النشطين!")
-        st.metric(label="سعر السوق الحي (BTC/USDT)", value="68,450.00 $", delta="+1.8%")
-        st.info("🟢 **الصفقة الحالية:** شراء (BUY) عند 68,100 | الهدف: 69,200 | الوقف: 67,600")
+def get_password(message):
+    chat_id = message.chat.id
+    user_data[chat_id]['password'] = message.text
+    
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🟡 باينانس (Binance)", callback_data="pay_binance"))
+    markup.add(types.InlineKeyboardButton("🟢 جوال باي (Jawwal Pay)", callback_data="pay_jawwal"))
+    
+    bot.send_message(chat_id, "الخطوة (3/4): اختر **طريقة الدفع** المفضلة لديك:", reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
+def choose_payment(call):
+    chat_id = call.message.chat.id
+    bot.answer_callback_query(call.id)
+    
+    if call.data == "pay_binance":
+        method = "باينانس (Binance)"
+        details = "عنوان محفظة باينانس (USDT):\n`ضع_عنوان_محفظتك_هنا`"
     else:
-        st.error("❌ كود التفعيل غير صحيح أو منتهي الصلاحية. تأكد من الإدارة أو جدد اشتراكك بـ 150$.")
+        method = "جوال باي (Jawwal Pay)"
+        details = "رقم محفظة جوال باي:\n`0590000000`"
+        
+    user_data[chat_id]['payment_method'] = method
+    
+    bot.send_message(
+        chat_id, 
+        f"لقد اخترت الدفع عبر **{method}**.\n\n"
+        f"قم بالتحويل بقيمة **150 دولار** إلى الحساب التالي:\n{details}\n\n"
+        f"الخطوة (4/4): بعد إتمام التحويل، يرجى إرسال **صورة إيصال الدفع** أو **رقم حركة الدفع** هنا مباشرة:", 
+        parse_mode="Markdown"
+    )
+    bot.register_next_step_handler(call.message, get_proof)
+
+def get_proof(message):
+    chat_id = message.chat.id
+    data = user_data.get(chat_id, {})
+    
+    username = data.get('username', 'غير معروف')
+    password = data.get('password', 'غير معروف')
+    method = data.get('payment_method', 'غير معروف')
+    
+    # رسالة التنبيه التي ستصلك أنت (المدير) على جوالك
+    admin_text = (
+        f"🚨 **طلب اشتراك جديد بانتظار التأكيد!** 🚨\n\n"
+        f"👤 اسم المستخدم: `{username}`\n"
+        f"🔑 كلمة المرور: `{password}`\n"
+        f"💳 طريقة الدفع: {method}\n"
+        f"💬 معرف التيليجرام (Chat ID): `{chat_id}`\n"
+    )
+    
+    # إرسال الطلب وإثبات الدفع إليك مباشرة
+    if message.photo:
+        photo_file_id = message.photo[-1].file_id
+        bot.send_photo(ADMIN_CHAT_ID, photo_file_id, caption=admin_text + "\n📎 مرفق صورة الإيصال بالأعلى", parse_mode="Markdown")
+    else:
+        proof_text = message.text
+        admin_text += f"📝 رقم الحركة/الإيصال: `{proof_text}`"
+        bot.send_message(ADMIN_CHAT_ID, admin_text, parse_mode="Markdown")
+        
+    # الرد على الزبون
+    bot.send_message(
+        chat_id, 
+        "✅ **تم إرسال طلبك وإثبات الدفع بنجاح!**\n\n"
+        "جاري مراجعة العملية من قِبل الإدارة، وسيتم إرسال **كود التفعيل الشهري** إليك فور تأكيد التحويل."
+    )
+
+if __name__ == '__main__':
+    print("Bot is running successfully...")
+    bot.infinity_polling()
