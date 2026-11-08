@@ -1,13 +1,13 @@
-https://l4rj2dpgajle9uzf8gntnd.import streamlit as st
+import streamlit as st
 import requests
 
 # 1. إعدادات بوت التليجرام الخاص بك (ضع توكن بوتك والآي دي الخاص بك هنا)
 TELEGRAM_BOT_TOKEN = "ضع_توكن_البوت_هنا"
 ADMIN_CHAT_ID = "ضع_الآي_دي_الخاص_بك_هنا"
 
-# 2. ضع بيانات الدفع الحقيقية الخاصة بك هنا ليراها الزبون مباشرة
-BINANCE_USDT_ADDRESS = "TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"  # ضع عنوان محفظة باينانس الحقيقي هنا (مثلاً TRC20)
-JAWWAL_PAY_NUMBER = "059xxxxxxx"  # ضع رقم جوال باي الحقيقي هنا
+# 2. بيانات الدفع (يمكنك تعديلها لاحقاً أو تركها كما هي)
+BINANCE_USDT_ADDRESS = "TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"  # عنوان محفظة باينانس (USDT - BEP20)
+JAWWAL_PAY_NUMBER = "059xxxxxxx"  # رقم جوال باي
 
 def send_telegram_notification(text):
     if TELEGRAM_BOT_TOKEN != "ضع_توكن_البوت_هنا":
