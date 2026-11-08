@@ -79,8 +79,7 @@ with st.form("subscription_form"):
                 f"📝 رقم الحركة / الإيصال: `{payment_proof}`"
             )
             send_telegram_notification(msg)
-            
-            st.success("✅ تم إرسال طلبك وإثبات الدفع بنجاح للإدارة! سيتم تفعيل اشتراكك الشهري قريباً."import streamlit as st
+        import streamlit as st
 
 st.markdown("""
 <style>
@@ -95,3 +94,5 @@ st.markdown("""
     div.viewerBadge_container__1QSob {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
+
+            st.success("✅ تم إرسال طلبك وإثبات الدفع بنجاح للإدارة! سيتم تفعيل اشتراكك الشهري قريباً.
