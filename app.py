@@ -1,9 +1,13 @@
-import streamlit as st
+https://l4rj2dpgajle9uzf8gntnd.import streamlit as st
 import requests
 
-# إعدادات بوت التليجرام الخاص بك (ضع توكن بوتك والآي دي الخاص بك هنا)
+# 1. إعدادات بوت التليجرام الخاص بك (ضع توكن بوتك والآي دي الخاص بك هنا)
 TELEGRAM_BOT_TOKEN = "ضع_توكن_البوت_هنا"
 ADMIN_CHAT_ID = "ضع_الآي_دي_الخاص_بك_هنا"
+
+# 2. ضع بيانات الدفع الحقيقية الخاصة بك هنا ليراها الزبون مباشرة
+BINANCE_USDT_ADDRESS = "TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"  # ضع عنوان محفظة باينانس الحقيقي هنا (مثلاً TRC20)
+JAWWAL_PAY_NUMBER = "059xxxxxxx"  # ضع رقم جوال باي الحقيقي هنا
 
 def send_telegram_notification(text):
     if TELEGRAM_BOT_TOKEN != "ضع_توكن_البوت_هنا":
@@ -18,8 +22,19 @@ def send_telegram_notification(text):
         except Exception as e:
             pass
 
-# تصميم الصفحة للموبايل
+# تصميم الصفحة للموبايل وإخفاء قائمة وشعار Streamlit وزر "إدارة التطبيق" نهائياً
 st.set_page_config(page_title="سكريبتات التداول", page_icon="📈", layout="centered")
+
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display:none;}
+    div[data-testid="stStatusWidget"] {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 st.markdown("""
     <div style="text-align: center; direction: rtl;">
@@ -34,18 +49,18 @@ st.markdown("---")
 st.markdown("### 📝 نموذج طلب الاشتراك الشهري")
 
 with st.form("subscription_form"):
-    username = st.text_input("اسم المستخدم المطللوب:")
+    username = st.text_input("اسم المستخدم المطلوب:")
     password = st.text_input("كلمة المرور:", type="password")
     
     payment_method = st.selectbox(
-        "اختر طريـقة الدفع:",
+        "اختر طريقة الدفع:",
         ["باينانس (Binance)", "جوال باي (Jawwal Pay)"]
     )
     
     if payment_method == "باينانس (Binance)":
-        st.info("💳 تحويل بقيمة 150$ إلى محفظة باينانس (USDT):\n`عنوان_محفظتك_هنا`")
+        st.info(f"💳 تحويل بقيمة **150$** إلى محفظة باينانس (USDT):\n`{BINANCE_USDT_ADDRESS}`")
     else:
-        st.info("🟢 تحويل بقيمة 150$ إلى محفظة جوال باي:\n`رقم_حساب_جوال_باي`")
+        st.info(f"🟢 تحويل بقيمة **150$** إلى محفظة جوال باي:\n`{JAWWAL_PAY_NUMBER}`")
         
     payment_proof = st.text_input("أدخل رقم حركة الدفع أو تفاصيل الإيصال:")
     
