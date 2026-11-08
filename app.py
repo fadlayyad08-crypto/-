@@ -80,6 +80,7 @@ with st.form("subscription_form"):
             )
             send_telegram_notification(msg)
         import streamlit as st
+st.success("✅ تم إرسال طلبك وإثبات الدفع بنجاح للإدارة! سيتم تفعيل اشتراكك الشهري قريباً.
 
 st.markdown("""
 <style>
@@ -95,4 +96,4 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-            st.success("✅ تم إرسال طلبك وإثبات الدفع بنجاح للإدارة! سيتم تفعيل اشتراكك الشهري قريباً.
+            
