@@ -80,4 +80,18 @@ with st.form("subscription_form"):
             )
             send_telegram_notification(msg)
             
-            st.success("✅ تم إرسال طلبك وإثبات الدفع بنجاح للإدارة! سيتم تفعيل اشتراكك الشهري قريباً.")
+            st.success("✅ تم إرسال طلبك وإثبات الدفع بنجاح للإدارة! سيتم تفعيل اشتراكك الشهري قريباً."import streamlit as st
+
+st.markdown("""
+<style>
+    /* إخفاء القائمة الرئيسية والترويسة والفوتر */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* إخفاء زر إدارة التطبيق وأزرار النشر والعرض العائمة في الزاوية */
+    .stAppDeployButton {display: none !important;}
+    div[class*="viewerBadge"] {display: none !important;}
+    div.viewerBadge_container__1QSob {display: none !important;}
+</style>
+""", unsafe_allow_html=True)
