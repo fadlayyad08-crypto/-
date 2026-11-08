@@ -1,117 +1,68 @@
-import telebot
-from telebot import types
+import streamlit as st
+import requests
 
-# 1. ضع هنا توكن البوت الخاص بك (تحصل عليه من @BotFather)
-TOKEN = 'YOUR_BOT_TOKEN_HERE'
+# إعدادات بوت التليجرام الخاص بك (ضع توكن بوتك والآي دي الخاص بك هنا)
+TELEGRAM_BOT_TOKEN = "ضع_توكن_البوت_هنا"
+ADMIN_CHAT_ID = "ضع_الآي_دي_الخاص_بك_هنا"
 
-# 2. ضع هنا رقم الآي دي (Admin Chat ID) الخاص بجوالك لكي تصلك الطلبات وحدك
-ADMIN_CHAT_ID = 123456789  # استبدل هذا الرقم برقم الآي دي الخاص بك
+def send_telegram_notification(text):
+    if TELEGRAM_BOT_TOKEN != "ضع_توكن_البوت_هنا":
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": ADMIN_CHAT_ID,
+            "text": text,
+            "parse_mode": "Markdown"
+        }
+        try:
+            requests.post(url, json=payload)
+        except Exception as e:
+            pass
 
-bot = telebot.TeleBot(TOKEN)
+# تصميم الصفحة للموبايل
+st.set_page_config(page_title="سكريبتات التداول", page_icon="📈", layout="centered")
 
-# تخزين مؤقت لبيانات المستخدمين أثناء التسجيل
-user_data = {}
+st.markdown("""
+    <div style="text-align: center; direction: rtl;">
+        <h2>أهلاً بكم في سكريبتات التداول</h2>
+        <p style="color: #ff4b4b; font-weight: bold;">⚠️ نحن غير مسؤولين على اي مخاطرة في التداول، نحن نعطيكم اشتراكات تداول بسعر 150 دولار.</p>
+        <hr>
+        <p><b>تفاصيل الباقة:</b> اشتراك شهري (شهر واحد) بسعر <b>150 دولار</b>.</p>
+    </div>
+""", unsafe_allow_html=True)
 
-# النص الترحيبي وإخلاء المسؤولية المطلوب
-WELCOME_TEXT = (
-    " أهلاً بكم في سكريبتات التداول.\n\n"
-    "⚠️ **نحن غير مسؤولين على اي مخاطرة في التداول، نحن نعطيكم اشتراكات تداول بسعر 150 دولار.**\n\n"
-    "📋 **تفاصيل الاشتراك:**\n"
-    "• نوع الباقة: اشتراك شهري\n"
-    "• السعر: 150 دولار\n"
-    "• المدة: شهر واحد"
-)
+st.markdown("---")
+st.markdown("### 📝 نموذج طلب الاشتراك الشهري")
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    chat_id = message.chat.id
-    user_data[chat_id] = {}
+with st.form("subscription_form"):
+    username = st.text_input("اسم المستخدم المطللوب:")
+    password = st.text_input("كلمة المرور:", type="password")
     
-    markup = types.InlineKeyboardMarkup()
-    btn = types.InlineKeyboardButton("🚀 اشترك الآن (150$ - شهر)", callback_data="start_sub")
-    markup.add(btn)
+    payment_method = st.selectbox(
+        "اختر طريـقة الدفع:",
+        ["باينانس (Binance)", "جوال باي (Jawwal Pay)"]
+    )
     
-    bot.send_message(chat_id, WELCOME_TEXT, parse_mode="Markdown", reply_markup=markup)
-
-@bot.callback_query_handler(func=lambda call: call.data == "start_sub")
-def ask_username(call):
-    chat_id = call.message.chat.id
-    bot.answer_callback_query(call.id)
-    bot.send_message(chat_id, "الخطوة (1/4): يرجى إدخال **اسم المستخدم** الذي تريده:")
-    bot.register_next_step_handler(call.message, get_username)
-
-def get_username(message):
-    chat_id = message.chat.id
-    user_data[chat_id]['username'] = message.text
-    bot.send_message(chat_id, "الخطوة (2/4): يرجى إدخال **كلمة المرور** الخاصة بحسابك:")
-    bot.register_next_step_handler(message, get_password)
-
-def get_password(message):
-    chat_id = message.chat.id
-    user_data[chat_id]['password'] = message.text
-    
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🟡 باينانس (Binance)", callback_data="pay_binance"))
-    markup.add(types.InlineKeyboardButton("🟢 جوال باي (Jawwal Pay)", callback_data="pay_jawwal"))
-    
-    bot.send_message(chat_id, "الخطوة (3/4): اختر **طريقة الدفع** المفضلة لديك:", reply_markup=markup)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
-def choose_payment(call):
-    chat_id = call.message.chat.id
-    bot.answer_callback_query(call.id)
-    
-    if call.data == "pay_binance":
-        method = "باينانس (Binance)"
-        details = "عنوان محفظة باينانس (USDT):\n`ضع_عنوان_محفظتك_هنا`"
+    if payment_method == "باينانس (Binance)":
+        st.info("💳 تحويل بقيمة 150$ إلى محفظة باينانس (USDT):\n`عنوان_محفظتك_هنا`")
     else:
-        method = "جوال باي (Jawwal Pay)"
-        details = "رقم محفظة جوال باي:\n`0590000000`"
+        st.info("🟢 تحويل بقيمة 150$ إلى محفظة جوال باي:\n`رقم_حساب_جوال_باي`")
         
-    user_data[chat_id]['payment_method'] = method
+    payment_proof = st.text_input("أدخل رقم حركة الدفع أو تفاصيل الإيصال:")
     
-    bot.send_message(
-        chat_id, 
-        f"لقد اخترت الدفع عبر **{method}**.\n\n"
-        f"قم بالتحويل بقيمة **150 دولار** إلى الحساب التالي:\n{details}\n\n"
-        f"الخطوة (4/4): بعد إتمام التحويل، يرجى إرسال **صورة إيصال الدفع** أو **رقم حركة الدفع** هنا مباشرة:", 
-        parse_mode="Markdown"
-    )
-    bot.register_next_step_handler(call.message, get_proof)
-
-def get_proof(message):
-    chat_id = message.chat.id
-    data = user_data.get(chat_id, {})
+    submitted = st.form_submit_button("🚀 إرسال طلب الاشتراك")
     
-    username = data.get('username', 'غير معروف')
-    password = data.get('password', 'غير معروف')
-    method = data.get('payment_method', 'غير معروف')
-    
-    # رسالة التنبيه التي ستصلك أنت (المدير) على جوالك
-    admin_text = (
-        f"🚨 **طلب اشتراك جديد بانتظار التأكيد!** 🚨\n\n"
-        f"👤 اسم المستخدم: `{username}`\n"
-        f"🔑 كلمة المرور: `{password}`\n"
-        f"💳 طريقة الدفع: {method}\n"
-        f"💬 معرف التيليجرام (Chat ID): `{chat_id}`\n"
-    )
-    
-    # إرسال الطلب وإثبات الدفع إليك مباشرة
-    if message.photo:
-        photo_file_id = message.photo[-1].file_id
-        bot.send_photo(ADMIN_CHAT_ID, photo_file_id, caption=admin_text + "\n📎 مرفق صورة الإيصال بالأعلى", parse_mode="Markdown")
-    else:
-        proof_text = message.text
-        admin_text += f"📝 رقم الحركة/الإيصال: `{proof_text}`"
-        bot.send_message(ADMIN_CHAT_ID, admin_text, parse_mode="Markdown")
-        
-    # الرد على الزبون
-    bot.send_message(
-        chat_id, 
-        "✅ **تم إرسال طلبك وإثبات الدفع بنجاح!**\n\n"
-        "جاري مراجعة العملية من قِبل الإدارة، وسيتم إرسال **كود التفعيل الشهري** إليك فور تأكيد التحويل."
-    )
-
-if __name__ == '__main__':
-    print("Bot is running successfully...")
-    bot.infinity_polling()
+    if submitted:
+        if not username or not password or not payment_proof:
+            st.error("❌ يرجى تعبئة جميع الحقول المطلوبة ورقم حركة الدفع!")
+        else:
+            # إرسال الإشعار لتليجرامك مباشرة
+            msg = (
+                f"🚨 *طلب اشتراك جديد عبر الموقع!* 🚨\n\n"
+                f"👤 اسم المستخدم: `{username}`\n"
+                f"🔑 كلمة المرور: `{password}`\n"
+                f"💳 طريقة الدفع: {payment_method}\n"
+                f"📝 رقم الحركة / الإيصال: `{payment_proof}`"
+            )
+            send_telegram_notification(msg)
+            
+            st.success("✅ تم إرسال طلبك وإثبات الدفع بنجاح للإدارة! سيتم تفعيل اشتراكك الشهري قريباً.")
